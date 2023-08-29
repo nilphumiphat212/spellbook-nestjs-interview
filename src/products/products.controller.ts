@@ -6,17 +6,21 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
+  Query
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth-guard';
 
+@UseGuards(JwtAuthGuard)
 @ApiTags('Products')
 @ApiBearerAuth()
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService) { }
 
   /*
    * TODO: Add ability to filter by name to this controller action.
@@ -25,9 +29,14 @@ export class ProductsController {
    * Example: /products?name=Something&price_subunit[gte]=10&price_subunit[lte]=100
    */
 
+
   @Get()
-  index() {
-    return this.productsService.findAll();
+  index(
+    @Query('name') name?: string,
+    @Query('price_subunit_gte') gte?: string,
+    @Query('price_subunit_lte') lte?: string
+  ) {
+    return this.productsService.withCondition({ name, gte, lte });
   }
 
   @Post()
@@ -44,6 +53,19 @@ export class ProductsController {
    * TODO: Add the Category entity and create a Many-To-Many association to Products.
    * TODO: Add ability to link Products to Categories.
    */
+
+  @Patch(':productId/categories')
+  async linkProductToCategories(
+    @Param('productId') productId: number,
+    @Body() categoryIds: number[]
+  ) {
+    return this.productsService.linkProductToCategories(productId, categoryIds);
+  }
+
+  @Get('categories/:categoryId')
+  async findProductsByCategory(@Param('categoryId') categoryId: number) {
+    return this.productsService.findProductsByCategory(categoryId);
+  }
 
   @Patch(':id')
   async update(

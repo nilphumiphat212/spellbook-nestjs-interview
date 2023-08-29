@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
 } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
 import { Money } from '../../utils/money';
+import { Category } from './category.entity';
 
 @Entity()
 export class Product {
@@ -37,4 +39,7 @@ export class Product {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToMany(() => Category, category => category.products)
+  categories: Category[];
 }

@@ -3,25 +3,25 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  Post,
-  UseGuards,
+  Post
 } from '@nestjs/common';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { CurrentUser } from './auth.decorator';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthResponseData } from './dto/response/auth.response.dto';
+import { BaseResponse } from '../core/base.response';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('sign_in')
-  @UseGuards(LocalAuthGuard)
   @HttpCode(HttpStatus.OK)
-  signIn(@Body() _authDto: AuthDto, @CurrentUser() user) {
-    return user;
+  async signIn(@Body() authDto: AuthDto): Promise<BaseResponse<AuthResponseData>> {
+    const data = await this.authService.signIn(authDto);
+
+    return { success: data !== null, data };
   }
 
   @Post('sign_up')
